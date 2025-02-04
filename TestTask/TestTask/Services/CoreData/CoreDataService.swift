@@ -89,21 +89,24 @@ extension CoreDataService {
         backgroundContext.perform { [weak self] in
             guard let self = self else { return }
             
-            let transactions: [(Double, String, Date)] = [
-                (-0.1, "Food", Date()),
-                (-0.2, "Entertainment", Date().addingTimeInterval(-86400)), // Вчера
-                (-0.05, "Transport", Date().addingTimeInterval(-172800)) // Позавчера
-            ]
+            let categories = ["Food", "Entertainment", "Transport", "Groceries", "Taxi", "Electronics", "Restaurant", "Other"]
+            let daysInPast = 7
+            let transactionsPerDay = 10
             
-            for (amount, category, date) in transactions {
-                let transaction = Transaction(context: self.backgroundContext)
-                transaction.amount = amount
-                transaction.category = category
-                transaction.date = date
+            for day in 0..<daysInPast {
+                for _ in 0..<transactionsPerDay {
+                    let randomCategory = categories.randomElement() ?? "Other"
+                    let randomAmount = Double.random(in: -0.5...(-0.01))
+                    let date = Calendar.current.date(byAdding: .day, value: -day, to: Date())!
+                    let transaction = Transaction(context: self.backgroundContext)
+                    transaction.amount = randomAmount
+                    transaction.category = randomCategory
+                    transaction.date = date
+                }
             }
             
             self.saveContext()
-            print("Seeded test transactions")
+            print("Seeded \(daysInPast * transactionsPerDay) test transactions")
         }
     }
     

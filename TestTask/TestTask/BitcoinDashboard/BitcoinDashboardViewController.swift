@@ -15,6 +15,8 @@ class BitcoinDashboardViewController: NiblessViewController {
     private let balanceLabel = UILabel()
     private var bitcoinRate: Double = 0.0
     
+    private var groupedTransactions: [Date: [Transaction]] = [:]
+    private var sortedDates: [Date] = []
     private let model: BitcoinDashboardModel
     private var cancellables = Set<AnyCancellable>()
     
@@ -42,6 +44,15 @@ class BitcoinDashboardViewController: NiblessViewController {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] balance in
                 self?.balanceLabel.text = "Balance: \(balance) BTC"
+            }
+            .store(in: &cancellables)
+        
+        model.$groupedTransactions
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] groupedTransactions in
+                self?.groupedTransactions = groupedTransactions
+                self?.sortedDates = groupedTransactions.keys.sorted(by: >)
+                self?.tableView.reloadData()
             }
             .store(in: &cancellables)
     }
@@ -79,9 +90,9 @@ class BitcoinDashboardViewController: NiblessViewController {
             addTransactionButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
         
-        // TableView
-        //        tableView.register(TransactionTableViewCell.self, forCellReuseIdentifier: "TransactionCell")
+        tableView.register(TransactionTableViewCell.self, forCellReuseIdentifier: "TransactionTableViewCell")
         tableView.dataSource = self
+        tableView.delegate = self
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -99,15 +110,41 @@ class BitcoinDashboardViewController: NiblessViewController {
 
 extension BitcoinDashboardViewController: UITableViewDataSource {
     
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return sortedDates.count
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 0
+        let date = sortedDates[section]
+        return groupedTransactions[date]?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        //        let cell = tableView.dequeueReusableCell(withIdentifier: "TransactionCell", for: indexPath) as! TransactionTableViewCell
-        //        let transaction = transactions[indexPath.row]
-        //        cell.configure(with: transaction, bitcoinRate: bitcoinRate)
-        //        return cell
-        return UITableViewCell()
+        let cell = tableView.dequeueReusableCell(withIdentifier: "TransactionTableViewCell", for: indexPath) as! TransactionTableViewCell
+        let date = sortedDates[indexPath.section]
+        if let transaction = groupedTransactions[date]?[indexPath.row] {
+            cell.configure(with: transaction, bitcoinRate: bitcoinRate)
+        }
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        let date = sortedDates[section]
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .none
+        return dateFormatter.string(from: date)
+    }
+}
+
+extension BitcoinDashboardViewController: UITableViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let offsetY = scrollView.contentOffset.y
+        let contentHeight = scrollView.contentSize.height
+        let frameHeight = scrollView.frame.size.height
+        
+        if offsetY > contentHeight - frameHeight * 1.5 {
+            model.fetchTransactions()
+        }
     }
 }

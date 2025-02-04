@@ -9,7 +9,6 @@ import UIKit
 
 class TransactionTableViewCell: UITableViewCell {
     
-    
     private let categoryLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16, weight: .bold)
@@ -85,7 +84,8 @@ class TransactionTableViewCell: UITableViewCell {
     
     func configure(with transaction: Transaction, bitcoinRate: Double) {
         categoryLabel.text = transaction.category?.capitalized
-        amountLabel.text = String(format: "%.8f BTC (%.2f USD)", transaction.amount, transaction.amount * bitcoinRate)
+        amountLabel.text = String(format: "%.8f BTC", transaction.amount)
         dateLabel.text = transaction.date?.formatted(date: .abbreviated, time: .shortened)
     }
+    
 }
