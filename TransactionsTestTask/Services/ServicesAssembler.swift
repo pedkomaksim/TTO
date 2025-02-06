@@ -12,30 +12,32 @@
 /// Imagine having rate updates in 20-50 diffent modules
 /// Make this logic not depending on any module
 ///
+import Combine
+
 enum ServicesAssembler {
-    
-    // MARK: - BitcoinRateService
-    
-    static let bitcoinRateService: PerformOnce<BitcoinRateService> = {
-        lazy var analyticsService = Self.analyticsService()
-        
-        let service = BitcoinRateServiceImpl()
-        
-        service.onRateUpdate = {
-            analyticsService.trackEvent(
-                name: "bitcoin_rate_update",
-                parameters: ["rate": String(format: "%.2f", $0)]
-            )
-        }
-        
-        return { service }
-    }()
     
     // MARK: - AnalyticsService
     
     static let analyticsService: PerformOnce<AnalyticsService> = {
         let service = AnalyticsServiceImpl()
-        
         return { service }
     }()
+    
+    // MARK: - BitcoinRateService
+    
+    static let bitcoinRateService: BitcoinRateService = {
+        let service = BitcoinRateServiceImpl(
+            updateInterval: 300,
+            analyticsService: analyticsService()
+        )
+        
+        return service
+    }()
+    
+    static let coreDataService: CoreDataService = {
+        let service = CoreDataServiceImpl(modelName: "TransactionsTestTask")
+        return service
+    }()
+    
+    private static var cancellables = Set<AnyCancellable>()
 }

@@ -8,12 +8,6 @@
 import Combine
 import Foundation
 
-protocol TransactionUpdaterDelegate: AnyObject {
-    
-    func updateTransaction()
-    
-}
-
 protocol AddTransactionModelNavigationHandler: AnyObject {
     
     //    func showMailFlow()
@@ -24,8 +18,9 @@ final class AddTransactionModel {
     
     let coreDataService: CoreDataService
     
-    private let navigationHandler: AddTransactionModelNavigationHandler
     private var cancellables = Set<AnyCancellable>()
+    
+    private let navigationHandler: AddTransactionModelNavigationHandler
     
     init(
         navigationHandler: AddTransactionModelNavigationHandler,

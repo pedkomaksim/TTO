@@ -12,16 +12,14 @@ class BitcoinDashboardViewController: NiblessViewController {
     
     let model: BitcoinDashboardModel
     
+    private var bitcoinRate: Double = 0.0
+    private var groupedTransactions: [Date: [Transaction]] = [:]
+    private var sortedDates: [Date] = []
+    private var cancellables = Set<AnyCancellable>()
+    
     private let tableView = UITableView()
     private let bitcoinRateLabel = UILabel()
     private let balanceLabel = UILabel()
-    private var bitcoinRate: Double = 0.0
-    
-    private var groupedTransactions: [Date: [Transaction]] = [:]
-    private var sortedDates: [Date] = []
-    
-    private var cancellables = Set<AnyCancellable>()
-    private var indexx = 0
     
     init(model: BitcoinDashboardModel) {
         self.model = model
@@ -35,10 +33,10 @@ class BitcoinDashboardViewController: NiblessViewController {
     }
     
     private func setupBindings() {
-        model.bitcoinRateService.bitcoinRatePublisher
+        model.$bitcoinRate
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] rate in
-                self?.bitcoinRateLabel.text = "Bitcoin rate: \(rate ?? 0) $"
-                print("Updated Bitcoin rate: \(rate ?? 0)")
+                self?.bitcoinRateLabel.text = "Bitcoin rate: \(rate) $"
             }
             .store(in: &cancellables)
         
@@ -178,13 +176,10 @@ extension BitcoinDashboardViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
         let lastSection = sortedDates.count - 1
         guard lastSection >= 0, !model.isFetchingTransactions else { return }
-
+        
         let lastRow = (groupedTransactions[sortedDates[lastSection]]?.count ?? 1) - 1
         if indexPath.section == lastSection && indexPath.row == lastRow {
-            print("pagination \(indexx)")
-            indexx += 1
-            model.fetchTransactions()
+            model.loadNextPage()
         }
     }
-    
 }

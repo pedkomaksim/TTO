@@ -11,4 +11,5 @@ struct AnalyticsEvent {
     let name: String
     let parameters: [String: String]
     let date: Date
+    
 }

@@ -14,7 +14,8 @@ final class AppFlowCoordinator: NSObject, FlowCoordinator {
     
     private weak var navigationController: UINavigationController?
     private weak var rootViewController: UIViewController?
-    private let coreDataService = CoreDataService.shared
+    private let coreDataService: CoreDataService = ServicesAssembler.coreDataService
+    private let bitcoinRateService: BitcoinRateService = ServicesAssembler.bitcoinRateService
     
     override init() {
         super.init()
@@ -22,6 +23,7 @@ final class AppFlowCoordinator: NSObject, FlowCoordinator {
     
     func createFlow() -> UIViewController {
         let model = BitcoinDashboardModel(
+            bitcoinRateService: bitcoinRateService,
             navigationHandler: self as BitcoinDashboardModelNavigationHandler,
             coreDataService: coreDataService
         )
@@ -39,22 +41,15 @@ final class AppFlowCoordinator: NSObject, FlowCoordinator {
 extension AppFlowCoordinator: BitcoinDashboardModelNavigationHandler {
     
     func showAddTransaction() {
-        guard let navigationController = navigationController,
-              let dashboardVC = navigationController.viewControllers.first as? BitcoinDashboardViewController else {
-            return
-        }
-
         let model = AddTransactionModel(
             navigationHandler: self,
             coreDataService: coreDataService
         )
         
         let controller = AddTransactionViewController(model: model)
-        controller.delegate = dashboardVC.model as? TransactionUpdaterDelegate
-        
-        navigationController.pushViewController(controller, animated: true)
+        navigationController?.pushViewController(controller, animated: true)
     }
-
+    
 }
 
 extension AppFlowCoordinator: AddTransactionModelNavigationHandler { }

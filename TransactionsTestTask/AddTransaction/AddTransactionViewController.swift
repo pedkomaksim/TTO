@@ -11,6 +11,9 @@ import Foundation
 
 class AddTransactionViewController: NiblessViewController {
     
+    private var selectedCategory: TransactionCategory = .groceries
+    private var cancellables = Set<AnyCancellable>()
+    
     private let amountTextField: UITextField = {
         let textField = UITextField()
         textField.placeholder = "Enter amount"
@@ -31,12 +34,7 @@ class AddTransactionViewController: NiblessViewController {
         return button
     }()
     
-    weak var delegate: TransactionUpdaterDelegate?
-    
-    private var selectedCategory: TransactionCategory = .groceries
-    
     private let model: AddTransactionModel
-    private var cancellables = Set<AnyCancellable>()
     
     init(model: AddTransactionModel) {
         self.model = model
@@ -71,7 +69,6 @@ class AddTransactionViewController: NiblessViewController {
     @objc private func addTransaction() {
         guard let amountText = amountTextField.text, let amount = Double(amountText) else { return }
         model.addTransaction(amount: amount, category: selectedCategory.rawValue, date: Date())
-        delegate?.updateTransaction()
         navigationController?.popViewController(animated: true)
     }
 }
