@@ -23,6 +23,9 @@
 		2C6962672D518FB80042419A /* NiblessViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C6962662D518FB60042419A /* NiblessViewController.swift */; };
 		2C69626B2D5268570042419A /* TransactionTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C69626A2D5268560042419A /* TransactionTableViewCell.swift */; };
 		2C69626D2D526ED20042419A /* CoreDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C69626C2D526ECA0042419A /* CoreDataService.swift */; };
+		2C84B94B2D541EC2006C7302 /* AddTransactionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C84B94A2D541EC0006C7302 /* AddTransactionViewController.swift */; };
+		2C84B94D2D541F65006C7302 /* AddTransactionModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C84B94C2D541F62006C7302 /* AddTransactionModel.swift */; };
+		2C84B94F2D541FF9006C7302 /* TransactionCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C84B94E2D541FF8006C7302 /* TransactionCategory.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +66,9 @@
 		2C6962662D518FB60042419A /* NiblessViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiblessViewController.swift; sourceTree = "<group>"; };
 		2C69626A2D5268560042419A /* TransactionTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionTableViewCell.swift; sourceTree = "<group>"; };
 		2C69626C2D526ECA0042419A /* CoreDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataService.swift; sourceTree = "<group>"; };
+		2C84B94A2D541EC0006C7302 /* AddTransactionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTransactionViewController.swift; sourceTree = "<group>"; };
+		2C84B94C2D541F62006C7302 /* AddTransactionModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTransactionModel.swift; sourceTree = "<group>"; };
+		2C84B94E2D541FF8006C7302 /* TransactionCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransactionCategory.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -157,6 +163,8 @@
 		2C6962592D5118E80042419A /* AddTransactionScreen */ = {
 			isa = PBXGroup;
 			children = (
+				2C84B94A2D541EC0006C7302 /* AddTransactionViewController.swift */,
+				2C84B94C2D541F62006C7302 /* AddTransactionModel.swift */,
 			);
 			path = AddTransactionScreen;
 			sourceTree = "<group>";
@@ -174,6 +182,7 @@
 		2C69625D2D518D740042419A /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				2C84B94E2D541FF8006C7302 /* TransactionCategory.swift */,
 				2C6962662D518FB60042419A /* NiblessViewController.swift */,
 				2C69625E2D518D810042419A /* FlowCoordinator.swift */,
 			);
@@ -336,12 +345,15 @@
 				2C69624E2D51161C0042419A /* AppDelegate.swift in Sources */,
 				2C6962612D518DA30042419A /* AppFlowCoordinator.swift in Sources */,
 				2C6962652D518F670042419A /* BitcoinDashboardModel.swift in Sources */,
+				2C84B94B2D541EC2006C7302 /* AddTransactionViewController.swift in Sources */,
 				2C69624F2D51161C0042419A /* SceneDelegate.swift in Sources */,
 				2C69625F2D518D820042419A /* FlowCoordinator.swift in Sources */,
 				2C6962502D51161C0042419A /* TestTask.xcdatamodeld in Sources */,
 				2C69626B2D5268570042419A /* TransactionTableViewCell.swift in Sources */,
+				2C84B94F2D541FF9006C7302 /* TransactionCategory.swift in Sources */,
 				2C69625C2D511BE50042419A /* BitcoinRateService.swift in Sources */,
 				2C69626D2D526ED20042419A /* CoreDataService.swift in Sources */,
+				2C84B94D2D541F65006C7302 /* AddTransactionModel.swift in Sources */,
 				2C6962672D518FB80042419A /* NiblessViewController.swift in Sources */,
 				2C6962632D518F5B0042419A /* BitcoinDashboardViewController.swift in Sources */,
 			);

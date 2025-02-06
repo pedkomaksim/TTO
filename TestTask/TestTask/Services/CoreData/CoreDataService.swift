@@ -39,12 +39,20 @@ class CoreDataService {
         }.eraseToAnyPublisher()
     }
     
-    func updateBalance(by amount: Double) {
+    func topUPBalance(by amount: Double) {
         backgroundContext.perform { [weak self] in
+            guard let self = self else { return }
+            
             let request: NSFetchRequest<Balance> = Balance.fetchRequest()
-            let balance = (try? self?.backgroundContext.fetch(request))?.first ?? Balance(context: self!.backgroundContext)
+            let balance = (try? self.backgroundContext.fetch(request))?.first ?? Balance(context: self.backgroundContext)
             balance.amount += amount
-            self?.saveContext()
+            
+            let transaction = Transaction(context: self.backgroundContext)
+            transaction.amount = amount
+            transaction.category = "Top up balance"
+            transaction.date = Date()
+            
+            self.saveContext()
         }
     }
     
@@ -54,7 +62,7 @@ class CoreDataService {
             transaction.amount = amount
             transaction.category = category
             transaction.date = date
-            self?.updateBalance(by: -amount)
+            self?.updateBalance(by: amount)
             self?.saveContext()
         }
     }
@@ -70,6 +78,22 @@ class CoreDataService {
                 promise(.success(transactions))
             }
         }.eraseToAnyPublisher()
+    }
+    
+    func fetchBalanceAndTransactions(limit: Int, offset: Int) -> AnyPublisher<(Double, [Transaction]), Never> {
+        Publishers.CombineLatest(fetchBalance(), fetchTransactions(limit: limit, offset: offset))
+            .eraseToAnyPublisher()
+    }
+    
+    private func updateBalance(by amount: Double) {
+        backgroundContext.perform { [weak self] in
+            guard let self = self else { return }
+            
+            let request: NSFetchRequest<Balance> = Balance.fetchRequest()
+            let balance = (try? self.backgroundContext.fetch(request))?.first ?? Balance(context: self.backgroundContext)
+            balance.amount += amount
+            self.saveContext()
+        }
     }
     
     private func saveContext() {
@@ -89,7 +113,7 @@ extension CoreDataService {
         backgroundContext.perform { [weak self] in
             guard let self = self else { return }
             
-            let categories = ["Food", "Entertainment", "Transport", "Groceries", "Taxi", "Electronics", "Restaurant", "Other"]
+            let categories = ["Food", "Entertainment", "Transport", "Groceries", "Taxi", "Electronics", "Restaurant", "Top up balance", "Other"]
             let daysInPast = 7
             let transactionsPerDay = 10
             

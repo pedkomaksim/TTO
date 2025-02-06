@@ -10,6 +10,8 @@ import Combine
 
 class BitcoinDashboardViewController: NiblessViewController {
     
+    let model: BitcoinDashboardModel
+    
     private let tableView = UITableView()
     private let bitcoinRateLabel = UILabel()
     private let balanceLabel = UILabel()
@@ -17,13 +19,13 @@ class BitcoinDashboardViewController: NiblessViewController {
     
     private var groupedTransactions: [Date: [Transaction]] = [:]
     private var sortedDates: [Date] = []
-    private let model: BitcoinDashboardModel
+    
     private var cancellables = Set<AnyCancellable>()
+    private var indexx = 0
     
     init(model: BitcoinDashboardModel) {
         self.model = model
         super.init()
-        
     }
     
     override func viewDidLoad() {
@@ -79,15 +81,27 @@ class BitcoinDashboardViewController: NiblessViewController {
             balanceLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20.0),
             balanceLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20.0)
         ])
-        balanceLabel.text = "0.0"
+        
         let addTransactionButton = UIButton(type: .system)
         addTransactionButton.setTitle("Add Transaction", for: .normal)
         addTransactionButton.addTarget(self, action: #selector(openAddTransaction), for: .touchUpInside)
-        view.addSubview(addTransactionButton)
-        addTransactionButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        let toUpBalanceButton = UIButton(type: .system)
+        toUpBalanceButton.setTitle("Top up balance", for: .normal)
+        toUpBalanceButton.addTarget(self, action: #selector(toUpBalanceAction), for: .touchUpInside)
+        
+        let buttonStackView = UIStackView(arrangedSubviews: [addTransactionButton, toUpBalanceButton])
+        buttonStackView.axis = .horizontal
+        buttonStackView.spacing = 20
+        buttonStackView.distribution = .fillEqually
+        
+        view.addSubview(buttonStackView)
+        buttonStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            addTransactionButton.topAnchor.constraint(equalTo: balanceLabel.bottomAnchor, constant: 20),
-            addTransactionButton.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+            buttonStackView.topAnchor.constraint(equalTo: balanceLabel.bottomAnchor, constant: 20),
+            buttonStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            buttonStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            buttonStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
         
         tableView.register(TransactionTableViewCell.self, forCellReuseIdentifier: "TransactionTableViewCell")
@@ -96,7 +110,7 @@ class BitcoinDashboardViewController: NiblessViewController {
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: addTransactionButton.bottomAnchor, constant: 20),
+            tableView.topAnchor.constraint(equalTo: buttonStackView.bottomAnchor, constant: 20),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
@@ -104,8 +118,29 @@ class BitcoinDashboardViewController: NiblessViewController {
     }
     
     @objc private func openAddTransaction() {
-        print("openAddTransaction")
+        model.showAddTransaction()
     }
+    
+    @objc private func toUpBalanceAction() {
+        
+        let alertController = UIAlertController(title: "Top Up Balance", message: "Enter amount in BTC", preferredStyle: .alert)
+        alertController.addTextField { textField in
+            textField.placeholder = "Amount"
+            textField.keyboardType = .decimalPad
+        }
+        
+        let confirmAction = UIAlertAction(title: "Confirm", style: .default) { [weak self] _ in
+            if let amountText = alertController.textFields?.first?.text, let amount = Double(amountText) {
+                self?.model.updateBalance(by: amount)
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertController.addAction(confirmAction)
+        alertController.addAction(cancelAction)
+        present(alertController, animated: true, completion: nil)
+    }
+    
 }
 
 extension BitcoinDashboardViewController: UITableViewDataSource {
@@ -135,16 +170,21 @@ extension BitcoinDashboardViewController: UITableViewDataSource {
         dateFormatter.timeStyle = .none
         return dateFormatter.string(from: date)
     }
+    
 }
 
 extension BitcoinDashboardViewController: UITableViewDelegate {
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let offsetY = scrollView.contentOffset.y
-        let contentHeight = scrollView.contentSize.height
-        let frameHeight = scrollView.frame.size.height
-        
-        if offsetY > contentHeight - frameHeight * 1.5 {
+    
+    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        let lastSection = sortedDates.count - 1
+        guard lastSection >= 0, !model.isFetchingTransactions else { return }
+
+        let lastRow = (groupedTransactions[sortedDates[lastSection]]?.count ?? 1) - 1
+        if indexPath.section == lastSection && indexPath.row == lastRow {
+            print("pagination \(indexx)")
+            indexx += 1
             model.fetchTransactions()
         }
     }
+    
 }

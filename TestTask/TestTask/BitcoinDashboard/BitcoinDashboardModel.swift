@@ -10,11 +10,11 @@ import Foundation
 
 protocol BitcoinDashboardModelNavigationHandler: AnyObject {
     
-    //    func showMailFlow()
+    func showAddTransaction()
     
 }
 
-final class BitcoinDashboardModel {
+class BitcoinDashboardModel {
     
     let bitcoinRateService: BitcoinRateService = BitcoinRateService()
     let coreDataService: CoreDataService
@@ -28,7 +28,7 @@ final class BitcoinDashboardModel {
     
     private var currentOffset = 0
     private let limit = 20
-    private var isFetchingTransactions = false
+    var isFetchingTransactions = false
     
     init(
         navigationHandler: BitcoinDashboardModelNavigationHandler,
@@ -36,14 +36,44 @@ final class BitcoinDashboardModel {
     ) {
         self.navigationHandler = navigationHandler
         self.coreDataService = coreDataService
-        coreDataBinding()
-        fetchTransactions()
+        fetchBalanceAndTransactions()
     }
     
-    func coreDataBinding() {
+    func fetchBalanceAndTransactions() {
+        guard !isFetchingTransactions else { return }
+        isFetchingTransactions = true
+        
+        coreDataService.fetchBalanceAndTransactions(limit: limit, offset: currentOffset)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] balance, newTransactions in
+                guard let self = self else { return }
+                
+                print("Баланс: \(balance)")
+                print("Транзакции: \(newTransactions)")
+                self.balance = balance
+                if newTransactions.isEmpty {
+                    self.isFetchingTransactions = false
+                    return
+                }
+                
+                self.transactions.append(contentsOf: newTransactions)
+                self.groupTransactionsByDay(self.transactions)
+                self.currentOffset += newTransactions.count
+                self.isFetchingTransactions = false
+            }
+            .store(in: &cancellables)
+    }
+    
+    func fetchBalance() {
         coreDataService.fetchBalance()
             .receive(on: DispatchQueue.main)
             .assign(to: &$balance)
+    }
+    
+    func updateBalance(by amount: Double) {
+        coreDataService.topUPBalance(by: amount)
+        fetchBalance()
+        fetchTransactions()
     }
     
     func fetchTransactions() {
@@ -54,6 +84,12 @@ final class BitcoinDashboardModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newTransactions in
                 guard let self = self else { return }
+                
+                if newTransactions.isEmpty {
+                    self.isFetchingTransactions = false
+                    return
+                }
+                
                 self.transactions.append(contentsOf: newTransactions)
                 self.groupTransactionsByDay(self.transactions)
                 self.currentOffset += newTransactions.count
@@ -62,11 +98,23 @@ final class BitcoinDashboardModel {
             .store(in: &cancellables)
     }
     
+    func showAddTransaction() {
+        navigationHandler.showAddTransaction()
+    }
+    
     private func groupTransactionsByDay(_ transactions: [Transaction]) {
         let grouped = Dictionary(grouping: transactions) { transaction in
             Calendar.current.startOfDay(for: transaction.date ?? Date())
         }
         self.groupedTransactions = grouped
+    }
+    
+}
+
+extension BitcoinDashboardModel: TransactionUpdaterDelegate {
+    
+    func updateTransaction() {
+        fetchBalanceAndTransactions()
     }
     
 }
